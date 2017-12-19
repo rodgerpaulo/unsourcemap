@@ -24,14 +24,36 @@ if (!fs.existsSync(outDir)) {
   fs.mkdirSync(outDir, 0o755);
 }
 
+function createFolderPath(dest, url) {
+  const aux = url.split('/');
+  let folderGuide = dest;
+  const authLength = (aux.length - 1);
+  let folder;
+
+  for (let i = 0; i < authLength; i++) {
+      folder = aux[i];
+      if (folder != "") {
+          folderGuide += "/" + folder;
+          if (!fs.existsSync(folderGuide)) {
+              fs.mkdirSync(folderGuide, 0o755);
+          }
+      }
+  }
+}
+
 function sanitizeSourceName(url) {
-  return url.replace(/[^a-zA-Z0-9\-_.:]/g, '_');
+  return url.replace(/webpack:\/\/[^a-zA-Z0-9\-_.:]/g, '');
 }
 
 for (var i = 0; i < map.sources.length; i++) {
   var sUrl = map.sources[i];
   console.log("Writing", sUrl);
-  var dest = outDir + '/' + i + '-' + sanitizeSourceName(sUrl);
-  var contents = map.sourceContentFor(sUrl);
-  fs.writeFileSync(dest, contents, 'utf8', 0o644);
+  
+  const urlSanitazier =  sanitizeSourceName(sUrl);
+  const fileFullPath = outDir + urlSanitazier;
+
+  createFolderPath(outDir, urlSanitazier)
+
+  const contents = map.sourceContentFor(sUrl);
+  fs.writeFileSync(fileFullPath, contents, 'utf8', 0o644);
 }
